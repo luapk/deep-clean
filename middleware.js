@@ -47,7 +47,7 @@ function page({ status = 401, message = '', next = '/', form = true }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Deep Clean</title>
+<title>The Unreachables</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
@@ -59,8 +59,9 @@ body{display:flex;align-items:center;justify-content:center;padding:24px 16px;co
   font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
   background:radial-gradient(ellipse at 50% 120%, #1a3a86 0%, var(--void) 60%) fixed, var(--void)}
 main{width:100%;max-width:400px}
-h1{font-family:"Jost",system-ui,sans-serif;font-weight:800;font-size:clamp(48px,14vw,72px);line-height:.9;letter-spacing:-.025em;
+h1{font-family:"Jost",system-ui,sans-serif;font-weight:800;font-size:clamp(40px,12vw,60px);line-height:.9;letter-spacing:-.025em;
   margin:0 0 14px;color:var(--enamel);text-shadow:0 0 38px rgba(255,196,90,.35)}
+h1 .the{display:block;font-size:.42em;letter-spacing:.02em;margin:0 0 .12em .04em;color:var(--glow)}
 p{margin:0 0 24px;font-size:17px;line-height:1.5;color:var(--muted)}
 label{display:block;margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--glow)}
 input{width:100%;font:inherit;font-size:18px;padding:14px 18px;border-radius:14px;color:var(--ink);
@@ -75,7 +76,7 @@ button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 </head>
 <body>
 <main>
-  <h1>Deep Clean</h1>
+  <h1><span class="the">The</span> Unreachables</h1>
   ${form ? `<p>This preview is private. Enter the password to play.</p>
   <form method="post" action="/__pass">
     <input type="hidden" name="next" value="${escape(next)}">

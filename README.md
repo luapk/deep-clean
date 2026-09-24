@@ -1,4 +1,6 @@
-# Deep Clean
+# The Unreachables
+
+*They thought they were invincible. Until now.*
 
 A first-person browser game for Oral-B Horizon. You hold a glowing tube of toothpaste, search a dark mouth for plaque, clear it, and go deeper while bacteria close in.
 
@@ -45,7 +47,7 @@ git push -u origin main
 
 ## Password
 
-The whole site sits behind a password, checked on Vercel's servers by `middleware.js` before any file is sent. Visitors see a Deep Clean sign-in page, and their browser stays signed in for 30 days.
+The whole site sits behind a password, checked on Vercel's servers by `middleware.js` before any file is sent. Visitors see a sign-in page in the game's style, and their browser stays signed in for 30 days.
 
 1. In Vercel, open the project, then Settings, then Environment Variables.
 2. Add `APP_PASSWORD` with the password as its value, for Production and Preview. Mark it Sensitive.
