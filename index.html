@@ -338,7 +338,7 @@ function patchwork(g,w,h,rng,colours,count,rmin,rmax){
 
 /* ---------- Renderer, cameras, post ---------- */
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, isTouch?1.5:2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, isTouch?1.5:2)); // lowered on the fly if frames run slow, see adaptResolution
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -421,6 +421,35 @@ function lumpySphere(seed,amt){
   const g=new THREE.SphereGeometry(1,36,26); const p=g.attributes.position; const v=new V3();
   for(let i=0;i<p.count;i++){ v.fromBufferAttribute(p,i); const n=smooth3(v.x*3+seed,v.y*3,v.z*3)+0.5*smooth3(v.x*7,v.y*7+seed,v.z*7); v.multiplyScalar(1+amt*n); p.setXYZ(i,v.x,v.y,v.z); }
   g.computeVertexNormals(); return g;
+}
+
+/* ---------- Fewer draw calls ---------- */
+// Merge meshes into one geometry (each part given as its geometry and the matrix that places it)
+function mergeParts(parts){
+  const geos=parts.map(({geo,matrix})=>{ const g=geo.index?geo.toNonIndexed():geo.clone(); g.applyMatrix4(matrix); return g; });
+  const out=new THREE.BufferGeometry();
+  for (const name of ['position','normal','uv']){
+    if (!geos.every(g=>g.attributes[name])) continue;
+    const size=geos[0].attributes[name].itemSize, arr=new Float32Array(geos.reduce((n,g)=>n+g.attributes[name].array.length,0));
+    let o=0; geos.forEach(g=>{ arr.set(g.attributes[name].array,o); o+=g.attributes[name].array.length; });
+    out.setAttribute(name,new THREE.BufferAttribute(arr,size));
+  }
+  geos.forEach(g=>g.dispose());
+  return out;
+}
+// Within each group, fold the parts that never move on their own and share a material into one mesh.
+// Moving parts (pivot, arms, legs, mouth) stay separate groups, so the animation is unchanged.
+function bakeStatic(root){
+  const parents=[]; root.traverse(o=>{ if(!o.isMesh && o.children.length>1) parents.push(o); });
+  for (const p of parents){
+    const byMat=new Map();
+    p.children.forEach(c=>{ if(c.isMesh && !c.children.length){ if(!byMat.has(c.material)) byMat.set(c.material,[]); byMat.get(c.material).push(c); } });
+    for (const [mat,list] of byMat){
+      if (list.length<2) continue;
+      const geo=mergeParts(list.map(m=>{ m.updateMatrix(); return {geo:m.geometry, matrix:m.matrix}; }));
+      list.forEach(m=>p.remove(m)); p.add(new THREE.Mesh(geo,mat));
+    }
+  }
 }
 
 /* ---------- Character construction ---------- */
@@ -550,6 +579,7 @@ function buildCharacter(type){
     pivot.add(makeArm('armL',-1,-.26,1.58,0,.8,.065,purple,green,.12)); pivot.add(makeArm('armR',1,.26,1.58,0,.8,.065,green,green,.12));
     root.add(makeLeg('legL',-.12,.64,.09,purple,green,[.13,.08,.19])); root.add(makeLeg('legR',.12,.64,.09,purple,green,[.13,.08,.19]));
   }
+  bakeStatic(root);
   root.traverse(o=>{ if(o.isMesh){ o.castShadow=true; } });
   return {root, flash};
 }
@@ -700,11 +730,19 @@ const enamelTex = canvasTex(512,512,(g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect
   for(let i=0;i<120;i++){ const x=r()*w; g.strokeStyle='rgba(185,182,178,'+(.04+r()*.07)+')'; g.lineWidth=2+r()*8; g.beginPath(); g.moveTo(x,0); g.bezierCurveTo(x+(r()-.5)*40,h*.3,x+(r()-.5)*40,h*.7,x+(r()-.5)*30,h); g.stroke(); }
   grime(g,w,h,r,20,.05);
 });
+// the tooth and its cusps as one geometry, so each tooth is a single draw call
+const fullToothCache = {};
+function fullToothGeo(kind, variant){
+  const key=kind+variant; if (fullToothCache[key]) return fullToothCache[key];
+  const P=PROFILES[kind]; if (!P.cusps) return (fullToothCache[key]=toothGeo(kind,variant));
+  const top=P.pts[P.pts.length-1][1], cps=P.cusps===4?[[1.3,1.1],[-1.3,1.1],[1.3,-1.1],[-1.3,-1.1]]:[[1.1,0],[-1.1,0]];
+  const parts=[{geo:toothGeo(kind,variant), matrix:new THREE.Matrix4()}];
+  cps.forEach((c,i)=>parts.push({geo:sphereGeo, matrix:new THREE.Matrix4().compose(new V3(c[0],top-.55,c[1]), new THREE.Quaternion(), new V3(1.55,.75+((i+variant)%3)*.12,1.45))}));
+  return (fullToothCache[key]=mergeParts(parts));
+}
 function makeTooth(kind, variant, mat, upper, scale, alongX){
   const P=PROFILES[kind]; const grp=new THREE.Group();
-  const m=new THREE.Mesh(toothGeo(kind,variant),mat); grp.add(m);
-  if (P.cusps){ const top=P.pts[P.pts.length-1][1]; const cps=P.cusps===4?[[1.3,1.1],[-1.3,1.1],[1.3,-1.1],[-1.3,-1.1]]:[[1.1,0],[-1.1,0]];
-    cps.forEach((c,i)=>{ const cu=new THREE.Mesh(sphereGeo,mat); cu.scale.set(1.55,.75+((i+variant)%3)*.12,1.45); cu.position.set(c[0],top-.55,c[1]); grp.add(cu); }); }
+  grp.add(new THREE.Mesh(fullToothGeo(kind,variant),mat));
   const sx=alongX?P.sz:P.sx, sz=alongX?P.sx:P.sz;
   grp.scale.set(sx*scale, scale*(upper?.9:1), sz*scale);
   if (upper) grp.rotation.x=Math.PI;
@@ -1325,7 +1363,7 @@ function gameOver(){
 }
 function pause(on){
   if (on && state==='playing'){ state='paused'; input.fire=false; show('pause',true); Sfx.music('pause'); }
-  else if (!on && state==='paused'){ show('pause',false); state='playing'; lockPointer(); Sfx.music('game'); }
+  else if (!on && state==='paused'){ show('pause',false); state='playing'; lockPointer(); Sfx.music('game'); $('pauseText').textContent='The bacteria are waiting too.'; }
 }
 function toTitle(){
   clearStage(); state='title'; Sfx.tempo(TITLE_BPM); Sfx.music('title'); Sfx.ambience(false); show('hud',false); show('touch',false); show('pause',false); show('over',false);
@@ -1369,6 +1407,9 @@ $('tBurst').addEventListener('touchstart',e=>{ burst(); e.preventDefault(); },{p
 $('tPause').addEventListener('click',()=>pause(true));
 
 $('startBtn').addEventListener('click',startGame);
+// If the browser resets the graphics card, three.js restores the scene by itself; pause so nobody is bitten meanwhile
+renderer.domElement.addEventListener('webglcontextlost',e=>{ e.preventDefault(); if (state==='playing'){ pause(true); $('pauseText').textContent='The graphics took a moment to catch up. Resume when you are ready.'; } });
+renderer.domElement.addEventListener('webglcontextrestored',()=>{ if (state!=='paused') $('pauseText').textContent='The bacteria are waiting too.'; });
 function firstGesture(){
   ['pointerdown','keydown'].forEach(ev=>removeEventListener(ev,firstGesture,true));
   Sfx.init(); if (state==='title') Sfx.music('title'); $('mute').style.display='block';
@@ -1637,8 +1678,23 @@ let last=performance.now();
 let loopOn=true;
 function frame(now){
   requestAnimationFrame(frame);
-  const dt=Math.min(.05,(now-last)/1000); last=now;
+  const raw=(now-last)/1000, dt=Math.min(.05,raw); last=now;
   if (loopOn) tick(dt,true);
+  adaptResolution(raw);
+}
+// Keep play smooth on weaker graphics: render at a lower resolution while frames run slow,
+// and step back up once there is headroom again. Measured over each second of play.
+const MAX_PR=Math.min(window.devicePixelRatio||1, isTouch?1.5:2), MIN_PR=Math.min(MAX_PR, isTouch?.75:1);
+let pixelRatio=MAX_PR, perfSum=0, perfN=0, calm=0;
+function adaptResolution(raw){
+  if (state!=='playing' || raw>2){ perfSum=perfN=0; return; } // ignore pauses and returning from a hidden tab
+  perfSum+=raw; perfN++; if (perfSum<1) return;
+  const avg=perfSum/perfN; perfSum=perfN=0;
+  let next=pixelRatio;
+  if (avg>1/40){ calm=0; next=Math.max(MIN_PR,pixelRatio-.25); }
+  else if (avg<1/55){ if (++calm>=4){ calm=0; next=Math.min(MAX_PR,pixelRatio+.25); } }
+  else calm=0;
+  if (next!==pixelRatio){ pixelRatio=next; renderer.setPixelRatio(pixelRatio); if (composer) composer.setPixelRatio(pixelRatio); resize(); }
 }
 function tick(dt,draw){
   t+=dt;
