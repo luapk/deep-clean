@@ -52,7 +52,7 @@ function page({ status = 401, message = '', next = '/', form = true }) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
 <style>
-:root{--void:#0a1d4a;--enamel:#f1e9d6;--glow:#ffc45a;--ink:#f1e9d6;--muted:#b9c7e4;--bad:#ff8a9c}
+:root{--void:#0a1d4a;--enamel:#f1e9d6;--sky:#8fd0ff;--btn:#0b4ea6;--btn-hover:#1462c4;--ink:#f1e9d6;--muted:#b9c7e4;--bad:#ff8a9c}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{display:flex;align-items:center;justify-content:center;padding:24px 16px;color:var(--ink);
@@ -60,18 +60,18 @@ body{display:flex;align-items:center;justify-content:center;padding:24px 16px;co
   background:radial-gradient(ellipse at 50% 120%, #1a3a86 0%, var(--void) 60%) fixed, var(--void)}
 main{width:100%;max-width:400px}
 h1{font-family:"Jost",system-ui,sans-serif;font-weight:800;font-size:clamp(40px,12vw,60px);line-height:.9;letter-spacing:-.025em;
-  margin:0 0 14px;color:var(--enamel);text-shadow:0 0 38px rgba(255,196,90,.35)}
-h1 .the{display:block;font-size:.42em;letter-spacing:.02em;margin:0 0 .12em .04em;color:var(--glow)}
+  margin:0 0 14px;color:var(--enamel);text-shadow:0 0 38px rgba(143,208,255,.28)}
+h1 .the{display:block;font-size:.42em;letter-spacing:.02em;margin:0 0 .12em .04em;color:var(--sky)}
 p{margin:0 0 24px;font-size:17px;line-height:1.5;color:var(--muted)}
-label{display:block;margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--glow)}
+label{display:block;margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--sky)}
 input{width:100%;font:inherit;font-size:18px;padding:14px 18px;border-radius:14px;color:var(--ink);
   background:rgba(241,233,214,.07);border:1.5px solid rgba(241,233,214,.22);outline:none}
-input:focus{border-color:var(--glow);box-shadow:0 0 0 3px rgba(255,196,90,.25)}
+input:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(143,208,255,.25)}
 .err{margin:10px 0 0;font-size:15px;font-weight:600;color:var(--bad)}
-button{margin-top:18px;width:100%;border:0;border-radius:999px;padding:16px 30px;font:inherit;font-weight:800;font-size:19px;color:#2a1500;cursor:pointer;
-  background:radial-gradient(circle at 35% 30%, #ffe3a3 0%, var(--glow) 55%, #e59a22 100%);
-  box-shadow:0 0 0 2px rgba(255,210,130,.35), 0 0 34px rgba(255,190,80,.45)}
-button:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
+button{margin-top:18px;width:100%;border:0;border-radius:999px;padding:16px 30px;font:inherit;font-weight:800;font-size:19px;color:#fff;cursor:pointer;background:var(--btn);
+  box-shadow:0 0 0 1.5px rgba(143,208,255,.45), 0 8px 28px rgba(4,14,40,.55)}
+button:hover{background:var(--btn-hover)}
+button:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
 </style>
 </head>
 <body>
