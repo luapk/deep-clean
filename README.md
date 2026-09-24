@@ -43,7 +43,17 @@ git push -u origin main
 2. Set Framework Preset to Other. Leave Build Command and Output Directory empty.
 3. Deploy. Every push to `main` will redeploy automatically.
 
-To keep the link private to your team, turn on Deployment Protection under Project Settings.
+## Password
+
+The whole site sits behind a password, checked on Vercel's servers by `middleware.js` before any file is sent. Visitors see a Deep Clean sign-in page, and their browser stays signed in for 30 days.
+
+1. In Vercel, open the project, then Settings, then Environment Variables.
+2. Add `APP_PASSWORD` with the password as its value, for Production and Preview. Mark it Sensitive.
+3. Redeploy (Deployments, then the latest one, then Redeploy). A new password only applies to new deployments.
+
+If `APP_PASSWORD` is missing, the site stays locked rather than opening up. Changing the password signs everyone out. Opening `/logout` signs out the current browser.
+
+The password only applies on Vercel. Opening `index.html` directly or running `npx serve .` has no password.
 
 ## Notes
 
