@@ -31,9 +31,9 @@ button:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
 
 /* Title */
 #title{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
-#title .panel{pointer-events:auto;--fade:clamp(40px,8vh,84px);
-  padding:var(--fade) clamp(20px,4.5vw,64px) calc(clamp(18px,3.6vh,40px) + env(safe-area-inset-bottom,0px));
-  background:linear-gradient(to bottom, rgba(10,29,74,0) 0, rgba(10,29,74,.92) var(--fade), var(--void) calc(var(--fade) + 80px));
+#title .panel{pointer-events:auto;--pad-top:clamp(22px,4vh,44px);
+  padding:var(--pad-top) clamp(20px,4.5vw,64px) calc(clamp(18px,3.6vh,40px) + env(safe-area-inset-bottom,0px));
+  background:var(--void);
   display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);grid-template-areas:"intro guide" "cta guide";
   grid-template-rows:1fr auto;column-gap:clamp(28px,4.5vw,88px);row-gap:clamp(16px,2.8vh,28px);align-items:end}
 #title .intro{grid-area:intro}
@@ -83,12 +83,12 @@ button:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
 
 @media (max-width:1180px) and (min-width:901px){ .keys{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:900px){
-  #title .panel{grid-template-columns:1fr;grid-template-areas:"intro" "guide" "cta";grid-template-rows:auto;row-gap:18px;--fade:clamp(32px,6vh,56px)}
+  #title .panel{grid-template-columns:1fr;grid-template-areas:"intro" "guide" "cta";grid-template-rows:auto;row-gap:18px;--pad-top:clamp(20px,3.5vh,32px)}
   #title h1{font-size:clamp(40px,11.5vw,72px)}
   #title .cta{flex-direction:column;align-items:stretch;gap:8px;text-align:center}
 }
 @media (max-width:560px){
-  #title .panel{--fade:30px;row-gap:14px}
+  #title .panel{--pad-top:18px;row-gap:14px}
   #title .lede,.fine,.step .desc{display:none}
   .guide{gap:8px}
   #title h1{font-size:clamp(34px,10.6vw,46px)}
@@ -114,7 +114,7 @@ button:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
   #startBtn{padding:14px 30px}
 }
 @media (max-height:520px) and (min-width:561px){
-  #title .panel{--fade:28px;row-gap:12px;grid-template-columns:minmax(0,.7fr) minmax(0,1.6fr);grid-template-areas:"intro guide" "cta guide";grid-template-rows:1fr auto}
+  #title .panel{--pad-top:14px;row-gap:12px;grid-template-columns:minmax(0,.7fr) minmax(0,1.6fr);grid-template-areas:"intro guide" "cta guide";grid-template-rows:1fr auto}
   #title .cta{flex-direction:row;align-items:center}
   .keys{grid-template-columns:repeat(4,minmax(0,1fr))}
   #title .lede,.step .desc,.fine{display:none}
@@ -1461,9 +1461,8 @@ function layoutTitle(){
   const a=innerWidth/innerHeight; const fov=titleCam.fov*Math.PI/180;
   const panel=document.querySelector('#title .panel');
   const ph=panel && panel.offsetHeight ? panel.offsetHeight : innerHeight*.4;
-  const fade=panel ? parseFloat(getComputedStyle(panel).paddingTop)||0 : 0;
-  // the floor line sits just under the panel's top edge, where the fade is still almost clear, so feet stay visible
-  const bottomFrac = clamp((ph-fade*.15)/innerHeight, .2, .9);
+  // the line-up stands just above the panel's crisp top edge, feet and all
+  const bottomFrac = clamp((ph+Math.max(10,innerHeight*.02))/innerHeight, .2, .9);
   const TALL=2.6; // tallest character plus headroom
   let H=TALL/(1-bottomFrac); if (H*a<7) H=7/a;
   // when width is the limit (portrait), lift the line-up into the middle of the space left above the panel
