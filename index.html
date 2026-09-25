@@ -402,7 +402,7 @@ const dotTex = canvasTex(64,64,(g)=>{ const gr=g.createRadialGradient(32,32,0,32
 
 function felt(colour, map, sheen){
   const m = new THREE.MeshPhysicalMaterial({ color:colour, map:map||feltWhite, bumpMap:feltBump, bumpScale:0.12, roughness:1, metalness:0 });
-  m.sheen = 1; m.sheenRoughness = 0.6; m.sheenColor = new THREE.Color(sheen||'#ffffff').multiplyScalar(0.12);
+  m.sheen = 1; m.sheenRoughness = 0.6; m.sheenColor = new THREE.Color(sheen||colour).multiplyScalar(0.08);
   return m;
 }
 const MAT = {
@@ -1449,10 +1449,11 @@ function buildTitle(){
   const wall=new THREE.Mesh(new THREE.PlaneGeometry(9,3.2),new THREE.MeshStandardMaterial({map:wallTex,roughness:.95,color:'#b9c2cb'})); wall.position.set(0,1.6,-.5); wall.receiveShadow=true; titleScene.add(wall);
   const base=new THREE.Mesh(new THREE.BoxGeometry(9,.06,.04),new THREE.MeshStandardMaterial({color:'#1d2023'})); base.position.set(0,.03,-.48); titleScene.add(base);
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(12,6),new THREE.MeshStandardMaterial({color:'#9aa1a8',roughness:.85})); floor.rotation.x=-Math.PI/2; floor.position.z=2; floor.receiveShadow=true; titleScene.add(floor);
-  titleScene.add(new THREE.HemisphereLight('#ffffff','#4a5260',.18));
-  const key=new THREE.DirectionalLight('#fffaf0',2.7); key.position.set(-1.2,3.2,6); key.castShadow=true; key.shadow.mapSize.set(2048,2048);
+  titleScene.add(new THREE.HemisphereLight('#ffffff','#3a4250',.3));
+  const key=new THREE.DirectionalLight('#fff6ea',2.1); key.position.set(-3,4.6,5.6); key.castShadow=true; key.shadow.mapSize.set(2048,2048);
   Object.assign(key.shadow.camera,{left:-5,right:5,top:3,bottom:-1,near:.5,far:14}); key.shadow.bias=-.0005; key.shadow.radius=6; titleScene.add(key);
-  const fill=new THREE.DirectionalLight('#dfe8ff',.45); fill.position.set(3,2,4); titleScene.add(fill);
+  const fill=new THREE.DirectionalLight('#dfe8ff',.4); fill.position.set(4,1.5,4); titleScene.add(fill);
+  const rim=new THREE.DirectionalLight('#ffffff',1.1); rim.position.set(1.5,4,-3); titleScene.add(rim);
   const order=[['lanky',-2.5],['blob',-1.28],['twist',0],['slouch',1.22],['spike',2.45]];
   order.forEach(([ty,x],i)=>{ const r=spawnCharacter(ty); initRigRest(r); r.root.position.set(x,0,0); titleScene.add(r.root);
     lineup.push(Object.assign(r,{type:ty,phase:i,seed:i*1.7,speedNow:0,aggro:false,biteT:0})); });
@@ -1702,7 +1703,7 @@ function tick(dt,draw){
   if (state==='title'){
     updateTitle(dt);
     if (!draw) return;
-    if (composer){ worldPass.scene=titleScene; worldPass.camera=titleCam; vmPass.enabled=false; bloomPass.strength=.08; finalPass.uniforms.uDamage.value=0; finalPass.uniforms.uFlash.value=0; finalPass.uniforms.uExposure.value=.92; finalPass.uniforms.uVignette.value=.35; finalPass.uniforms.uSat.value=1.28; finalPass.uniforms.uTime.value=t; composer.render(); }
+    if (composer){ worldPass.scene=titleScene; worldPass.camera=titleCam; vmPass.enabled=false; bloomPass.strength=.08; finalPass.uniforms.uDamage.value=0; finalPass.uniforms.uFlash.value=0; finalPass.uniforms.uExposure.value=.86; finalPass.uniforms.uVignette.value=.35; finalPass.uniforms.uSat.value=1.28; finalPass.uniforms.uTime.value=t; composer.render(); }
     else renderer.render(titleScene,titleCam);
     return;
   }
